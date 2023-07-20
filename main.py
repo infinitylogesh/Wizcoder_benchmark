@@ -4,19 +4,20 @@ from transformers import AutoConfig, AutoModelForCausalLM, AutoTokenizer
 import torch
 from fast_init import fast_init
 #from text_gen import text_gen_generate
-from vllm_gen import vllm_gen_generate
-from vllm import LLM
+#from vllm_gen import vllm_gen_generate
+#from vllm import LLM
 import gc
 #import deepspeed
 #from accelerate import init_empty_weights
 
 t_start = time.time()
-num_tokens = 256
+num_tokens = 512
 batch_size = 16
 model_name = "WizardLM/WizardCoder-15B-V1.0"
+load_in_8bit = True
 #model_name = "bigcode/starcoder"
 device = torch.device("cuda:0")
-inference_engine = "vllm"
+inference_engine = "hf"
 generate_kwargs = dict(min_new_tokens=num_tokens,
                        max_new_tokens=num_tokens, 
                        do_sample=False,
@@ -61,14 +62,17 @@ tokenizer = AutoTokenizer.from_pretrained(model_name,padding_side="left")
 print(f"*** Inference engine used - {inference_engine}")
 if inference_engine=="hf":
     #with init_empty_weights():
-    with fast_init(device):
-        model = AutoModelForCausalLM.from_pretrained(model_name, torch_dtype=torch.float16)
+    #with fast_init(device):
+    model = AutoModelForCausalLM.from_pretrained(model_name,torch_dtype=torch.float16,load_in_8bit=load_in_8bit,device_map="auto")
     model.eval()
-    model.to(device)
+    if not load_in_8bit:
+        model.to(device)
     generate_fn = hf_generate
 elif inference_engine=="vllm":
     model = LLM(model=model_name,dtype="float16")
     generate_fn = vllm_gen_generate
+elif inference_engine=="tgi":
+    generate_fn = text_gen_generate
 else:
     pass
 
