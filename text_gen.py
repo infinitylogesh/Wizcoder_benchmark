@@ -3,10 +3,11 @@ from text_generation_server.models.flash_santacoder import FlashSantacoderSharde
 from text_generation_server.models.santacoder import SantaCoder
 from text_generation_server.pb import generate_pb2
 from text_generation_server.models.model import Model
+from text_generation_server.models.causal_lm import CausalLMBatch
 import torch
 
-def text_gen_generate(model_id,texts,**generate_kwargs):
-    model:Model = SantaCoder(model_id,dtype=torch.float16)
+def text_gen_generate(model,tokenizer=None,inputs=None,**generate_kwargs):
+    model:Model = SantaCoder(model,dtype=torch.float16)
     #input_tokens = model.tokenizer.batch_encode_plus(inputs, return_tensors="pt",add_special_tokens=False, padding=True)
     batch_pb = generate_pb2.Batch(
             id=0,
@@ -24,12 +25,12 @@ def text_gen_generate(model_id,texts,**generate_kwargs):
                         watermark=False,
                     ),
                 )
-                for i, t in enumerate(texts)
+                for i, t in enumerate(inputs)
             ],
-            size=len(texts),
+            size=len(inputs),
             max_tokens=0,  # Ignored
         )
-    batch = model.batch_type.from_pb(batch_pb, model.tokenizer, torch.float16, model.device)
+    batch = CausalLMBatch.from_pb(batch_pb, model.tokenizer, torch.float16, model.device)
     #model.warmup(batch,max_total_tokens=64)
     generated, batch = model.generate_token(batch)
 
