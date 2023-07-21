@@ -7,7 +7,7 @@ from text_generation_server.models.causal_lm import CausalLMBatch
 import torch
 
 def text_gen_generate(model,tokenizer=None,inputs=None,**generate_kwargs):
-    model:Model = SantaCoder(model,dtype=torch.float16)
+    model:Model = SantaCoder(model,dtype=torch.float16,trust_remote_code=True)
     #input_tokens = model.tokenizer.batch_encode_plus(inputs, return_tensors="pt",add_special_tokens=False, padding=True)
     batch_pb = generate_pb2.Batch(
             id=0,

@@ -487,7 +487,8 @@ class TG_Pipeline(Pipeline):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         # TODO: Ignoring dtype
-
+        self.device = torch.device(self.device)
+        
         if self.device != torch.device("cuda:0"):
             raise ValueError(f"Textgen does not support device {self.device}")
 
@@ -516,7 +517,7 @@ class TG_Pipeline(Pipeline):
         pretrained_model, revision = parse_revision(pretrained_model)
 
         with fast_init(self.device) if self.fast_init else contextlib.nullcontext():
-            return get_model(pretrained_model, revision, False, None)
+            return get_model(pretrained_model, revision, False, None,self.trust_remote_code)
 
     def _generate_hf(self, inputs: Dict, max_new_tokens: int, use_cache: bool):
         raise NotImplementedError()
@@ -612,6 +613,8 @@ class TG_Pipeline(Pipeline):
 
         input_length = max(batch.input_lengths)
         output_length = input_length + max_new_tokens
+        
+        #self.model.warmup(batch)
 
         t1 = self._get_time(breakdown_latency)
         last_time = t1
@@ -689,7 +692,8 @@ class TG_Pipeline(Pipeline):
             size=len(text),
             max_tokens=0,  # Ignored
         )
-        batch = model.batch_type.from_pb(batch_pb, self.tokenizer, self.device)
+        batch = model.batch_type.from_pb(batch_pb, self.tokenizer,self.dtype, self.device)
+
         batch_size = len(batch)
 
         # TODO: Implement

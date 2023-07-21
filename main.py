@@ -4,9 +4,10 @@ from transformers import AutoConfig, AutoModelForCausalLM, AutoTokenizer
 import torch
 import wandb
 from fast_init import fast_init
-#from text_gen import text_gen_generate
-from vllm_gen import vllm_gen_generate
-from vllm import LLM
+from pipeline_gen import generate
+from pipeline import TG_Pipeline
+#from vllm_gen import vllm_gen_generate
+#from vllm import LLM
 import gc
 #import deepspeed
 #from accelerate import init_empty_weights
@@ -87,8 +88,14 @@ elif inference_engine=="vllm":
     model = LLM(model=model_name,dtype="float16")
     generate_fn = vllm_gen_generate
 elif inference_engine=="tgi":
-    generate_fn = text_gen_generate
-    model = model_name
+    generate_fn = generate
+    model = TG_Pipeline(model_type="causal",
+                        pretrained_model=model_name,
+                        tokenizer=model_name,
+                        device="cuda:0",
+                        dtype="float16",
+                        config_args=[],
+                        fast_init=False)
     tokenizer = None
 else:
     pass
@@ -119,18 +126,22 @@ for i in range(cycles):
     outputs= generate_fn(model=model,tokenizer=tokenizer,inputs=inputs,**generate_kwargs)
     total_new_tokens_generated += sum(total_new_tokens for (_,_,total_new_tokens) in outputs)
 torch.cuda.synchronize()
-throughput = (time.time() - t0) / (total_new_tokens_generated)
+cycles_generation_time = time.time() - t0
+throughput_per_token = (cycles_generation_time)/ (total_new_tokens_generated)
+throughput = (total_new_tokens_generated) / (cycles_generation_time)
 print(
     f"""
 *** Performance stats:
-Throughput per token including tokenize: {throughput*1000:.2f} msecs
+Throughput per token including tokenize: {throughput_per_token*1000:.2f} msecs
+Throughput (tokens/sec):{throughput}
 Tokenize and generate {total_new_tokens_generated} (bs={batch_size}) tokens: {t_generate_span:.3f} secs
 """
 )
 
-wb.log({"throughput":f"{throughput*1000:.2f} msecs",
+wb.log({"throughput_per_token":f"{throughput_per_token*1000:.2f} msecs",
        "total_new_tokens_generated":total_new_tokens_generated,
        "batch_size":batch_size,
+       "throughput": f"{throughput} tokens/sec",
        "total_generation_time":t_generate_span})
 
     
