@@ -3,9 +3,9 @@ from hf_vanilla import generate as hf_generate
 from transformers import AutoConfig, AutoModelForCausalLM, AutoTokenizer
 import torch
 import wandb
-from fast_init import fast_init
-from pipeline_gen import generate as tgt_generate
-from pipeline import TG_Pipeline
+from hf_pipeline import init_pipeline_model,generate as hfp_generate
+from tgi_pipeline_gen import generate as tgt_generate
+from tgi.pipeline2 import TG_Pipeline
 from vllm_gen import vllm_gen_generate
 from vllm import LLM
 import gc
@@ -20,6 +20,11 @@ parser.add_argument("--batch_size",type=int,default=16)
 parser.add_argument("--load_in_8bit",action="store_true")
 parser.add_argument("--model_name",type=str,default="WizardLM/WizardCoder-15B-V1.0")
 parser.add_argument("--inference_engine",type=str,default=None)
+parser.add_argument("--input_scale_factor",type=int,default=16)
+parser.add_argument("--num_cycles",type=int,default=3)
+parser.add_argument("--no_flash",action="store_true")
+parser.add_argument("--quantize",type=str,default=None)
+
 
 pargs = parser.parse_args()
 
@@ -28,7 +33,8 @@ batch_size = pargs.batch_size
 model_name = pargs.model_name
 load_in_8bit = pargs.load_in_8bit
 inference_engine = pargs.inference_engine
-cycles = 3
+scale_input_factor=pargs.input_scale_factor
+cycles = pargs.num_cycles
 
 wb = wandb.init(project="wizcoder_benchmark",config=pargs.__dict__)
 
@@ -46,17 +52,22 @@ warmup_sentences = [
 ]*batch_size
 
 input_sentences = [
-    "def test_"*100,
-    "def api_"*100,
-    "#DeepSpeed is a machine learning framework"*100,
-    "#He is working on"*100,
-    "#He has a"*100,
-    "#He got all"*100,
-    "#Everyone is happy and I can"*100,
-    "#The new movie that got Oscar this year"*100,
-    "#In the far far distance from our galaxy,"*100,
-    "#Peace is the only way"*100,
+    "def test_",
+    "def api_",
+    "#DeepSpeed is a machine learning framework",
+    "#He is working on",
+    "#He has a",
+    "#He got all",
+    "#Everyone is happy and I can",
+    "#The new movie that got Oscar this year",
+    "#In the far far distance from our galaxy,",
+    "#Peace is the only way",
  ]
+
+input_sentences = [inp*scale_input_factor for inp in input_sentences]
+tokenizer = AutoTokenizer.from_pretrained(model_name,padding_side="left")
+if tokenizer.pad_token is None:
+        tokenizer.pad_token = tokenizer.eos_token
 
 torch.cuda.empty_cache()
 gc.collect()
@@ -67,8 +78,6 @@ if batch_size > len(input_sentences):
 
 inputs = input_sentences[: batch_size]
 
-tokenizer = AutoTokenizer.from_pretrained(model_name,padding_side="left")
-
 print(f"*** Inference engine used - {inference_engine}")
 if inference_engine=="hf":
     #with init_empty_weights():
@@ -78,6 +87,9 @@ if inference_engine=="hf":
     if not load_in_8bit:
         model.to(device)
     generate_fn = hf_generate
+elif inference_engine=="hf_pipeline":
+    model,tokenizer = init_pipeline_model(model_name,device)
+    generate_fn = hfp_generate
 elif inference_engine=="vllm":
     model = LLM(model=model_name,dtype="float16")
     generate_fn = vllm_gen_generate
@@ -89,25 +101,39 @@ elif inference_engine=="tgi":
                         device="cuda:0",
                         dtype="float16",
                         config_args=[],
-                        fast_init=False)
+                        fast_init=False,
+                        is_flash=not pargs.no_flash,
+                        quantize=pargs.quantize
+                        )
+elif inference_engine=="gptq":
+    from auto_gptq import AutoGPTQForCausalLM, BaseQuantizeConfig
+    max_memory = dict()
+    if torch.cuda.is_available():
+        max_memory.update(
+            {i: f"40GIB" for i in range(torch.cuda.device_count())}
+        )
+    model = AutoGPTQForCausalLM.from_quantized(model_name,quantize_config=BaseQuantizeConfig(),max_memory=max_memory,use_safetensors=True)
+    model.eval()
+    if not load_in_8bit:
+        model.to(device)
+    generate_fn = hf_generate 
     tokenizer = None
 else:
-    pass
+    pas0s
 
 
 print("*** Running warmup generate")
 t_generate_start = time.time()
 # benchmark
 t0 = time.time()
-pairs = generate_fn(model,tokenizer,warmup_sentences,**generate_kwargs)
-#pairs = text_gen_generate(model_name,inputs,**generate_kwargs)
-#outputs= vllm_gen_generate(model,tokenizer,inputs,**generate_kwargs)
-#pairs = [(text,out.outputs[0].text,None) for text,out in zip(inputs,outputs)]
+pairs = generate_fn(model,tokenizer,input_sentences,**generate_kwargs)
 total_new_tokens = sum(total_new_tokens for (_,_,total_new_tokens) in pairs)
 t_generate_span = time.time() - t_generate_start
+
 for i, o, _ in pairs:
     print(f"{'-'*60}\nin={i}\nout={o}\n")
 print(f"{'-'*60}\n Time to generate: {t_generate_span}")
+
 torch.cuda.synchronize()
 
 print("*** Running benchmark")
@@ -128,12 +154,13 @@ torch.cuda.synchronize()
 cycles_generation_time = time.time() - t0
 throughput_per_token = (cycles_generation_time)/ (total_new_tokens_generated)
 throughput = (total_new_tokens_generated) / (cycles_generation_time)
+
 print(
     f"""
 *** Performance stats:
 Throughput per token including tokenize: {throughput_per_token*1000:.2f} msecs
 Throughput (tokens/sec):{throughput}
-Tokenize and generate {total_new_tokens_generated} (bs={batch_size}) tokens: {t_generate_span:.3f} secs
+Tokenize and generate {total_new_tokens_generated} (bs={batch_size}) tokens: {cycles_generation_time:.3f} secs
 """
 )
 

@@ -1,4 +1,3 @@
-from pipeline import TG_Pipeline
 
 custom_generate = True 
 do_prefill = True
