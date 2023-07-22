@@ -7,7 +7,7 @@ def generate(model,tokenizer,inputs,**generate_kwargs):
         if torch.is_tensor(input_tokens[t]):
             input_tokens[t] = input_tokens[t].to(torch.cuda.current_device())
     
-    outputs = model.generate(input_ids=input_tokens['input_ids'], **generate_kwargs)
+    outputs = model.generate(**input_tokens, **generate_kwargs)
     
     input_tokens_lengths = [x.shape[0] for x in input_tokens.input_ids]
     output_tokens_lengths = [x.shape[0] for x in outputs]

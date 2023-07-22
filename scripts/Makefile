@@ -1,0 +1,10 @@
+install-tgi:
+	git clone https://github.com/huggingface/text-generation-inference.git
+	git checkout v0.8.2
+	cd text-generation-inference && make install && && make install-benchmark && cd ..
+
+install-vllm:
+	git clone https://github.com/vllm-project/vllm.git
+	git checkout 6fc2a38b110f9ba6037b31ee016f20df32426877
+	cd vllm && pip install -e . && cd ..
+

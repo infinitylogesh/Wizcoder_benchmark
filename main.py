@@ -5,7 +5,7 @@ import torch
 import wandb
 from hf_pipeline import init_pipeline_model,generate as hfp_generate
 from tgi_pipeline_gen import generate as tgt_generate
-from tgi.pipeline2 import TG_Pipeline
+from tgi.pipeline import TG_Pipeline
 from vllm_gen import vllm_gen_generate
 from vllm import LLM
 import gc
@@ -67,7 +67,7 @@ input_sentences = [
 input_sentences = [inp*scale_input_factor for inp in input_sentences]
 tokenizer = AutoTokenizer.from_pretrained(model_name,padding_side="left")
 if tokenizer.pad_token is None:
-        tokenizer.pad_token = tokenizer.eos_token
+    tokenizer.pad_token = tokenizer.eos_token
 
 torch.cuda.empty_cache()
 gc.collect()
@@ -119,7 +119,7 @@ elif inference_engine=="gptq":
     generate_fn = hf_generate 
     tokenizer = None
 else:
-    pas0s
+    pass
 
 
 print("*** Running warmup generate")
