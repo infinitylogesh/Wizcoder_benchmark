@@ -20,7 +20,7 @@ parser.add_argument("--batch_size",type=int,default=16)
 parser.add_argument("--load_in_8bit",action="store_true")
 parser.add_argument("--model_name",type=str,default="WizardLM/WizardCoder-15B-V1.0")
 parser.add_argument("--inference_engine",type=str,default=None)
-parser.add_argument("--input_scale_factor",type=int,default=16)
+parser.add_argument("--input_scale_factor",type=int,default=1)
 parser.add_argument("--num_cycles",type=int,default=3)
 parser.add_argument("--no_flash",action="store_true")
 parser.add_argument("--quantize",type=str,default=None)
@@ -121,36 +121,41 @@ elif inference_engine=="gptq":
 else:
     pass
 
+try:
+    print("*** Running warmup generate")
+    t_generate_start = time.time()
+    # benchmark
+    t0 = time.time()
+    pairs = generate_fn(model,tokenizer,input_sentences,**generate_kwargs)
+    total_new_tokens = sum(total_new_tokens for (_,_,total_new_tokens) in pairs)
+    t_generate_span = time.time() - t_generate_start
 
-print("*** Running warmup generate")
-t_generate_start = time.time()
-# benchmark
-t0 = time.time()
-pairs = generate_fn(model,tokenizer,input_sentences,**generate_kwargs)
-total_new_tokens = sum(total_new_tokens for (_,_,total_new_tokens) in pairs)
-t_generate_span = time.time() - t_generate_start
+    for i, o, _ in pairs:
+        print(f"{'-'*60}\nin={i}\nout={o}\n")
+    print(f"{'-'*60}\n Time to generate: {t_generate_span}")
 
-for i, o, _ in pairs:
-    print(f"{'-'*60}\nin={i}\nout={o}\n")
-print(f"{'-'*60}\n Time to generate: {t_generate_span}")
+    torch.cuda.synchronize()
 
-torch.cuda.synchronize()
-
-print("*** Running benchmark")
+    print("*** Running benchmark")
 
 
-#deepspeed.runtime.utils.see_memory_usage("end-of-run", force=True)
-#torch.cuda.empty_cache()
-#gc.collect()
-total_new_tokens_generated = total_new_tokens
-for i in range(cycles):
-    cycle_start = time.time() 
-    outputs= generate_fn(model=model,tokenizer=tokenizer,inputs=inputs,**generate_kwargs)
-    total_new_tokens_generated += sum(total_new_tokens for (_,_,total_new_tokens) in outputs)
-    cycle_time = time.time() - cycle_start 
-    print(f"cycle time:{cycle_time}")
+    #deepspeed.runtime.utils.see_memory_usage("end-of-run", force=True)
+    #torch.cuda.empty_cache()
+    #gc.collect()
+    total_new_tokens_generated = total_new_tokens
+    for i in range(cycles):
+        cycle_start = time.time() 
+        outputs= generate_fn(model=model,tokenizer=tokenizer,inputs=inputs,**generate_kwargs)
+        total_new_tokens_generated += sum(total_new_tokens for (_,_,total_new_tokens) in outputs)
+        cycle_time = time.time() - cycle_start 
+        print(f"cycle time:{cycle_time}")
+    torch.cuda.synchronize()
+except torch.cuda.OutOfMemoryError as e:
+    print(f"Out of memory during generation")
+    cycles_generation_time = -1
+    total_new_tokens_generated= -1
+    t_generate_span=-1
     
-torch.cuda.synchronize()
 cycles_generation_time = time.time() - t0
 throughput_per_token = (cycles_generation_time)/ (total_new_tokens_generated)
 throughput = (total_new_tokens_generated) / (cycles_generation_time)
