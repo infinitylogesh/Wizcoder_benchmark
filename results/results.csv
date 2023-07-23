@@ -1,0 +1,22 @@
+Name,State,Notes,User,Tags,Created,Runtime,Sweep,batch_size,inference_engine,input_scale_factor,load_in_8bit,model_name,no_flash,num_cycles,num_tokens,quantize,throughput,throughput_per_token,total_generation_time,total_new_tokens_generated
+noble-darkness-193,finished,-,infinitylogesh,,2023-07-22T23:29:51.000Z,75,,64,vllm,1,false,WizardLM/WizardCoder-15B-V1.0,false,3,256,,1469.315487764201 tokens/sec,0.68 msecs,11.8857002258301,67072
+glowing-cherry-163,finished,-,infinitylogesh,,2023-07-22T22:17:51.000Z,54,,64,tgi,1,false,WizardLM/WizardCoder-15B-V1.0,false,3,256,,1697.077595848567 tokens/sec,0.59 msecs,11.3128232955933,67072
+snowy-glade-155,finished,-,infinitylogesh,,2023-07-22T21:37:39.000Z,160,,64,hf,1,false,WizardLM/WizardCoder-15B-V1.0,false,3,256,,530.8406202975333 tokens/sec,1.88 msecs,98.7983787059784,67072
+electric-galaxy-179,finished,-,infinitylogesh,,2023-07-22T22:52:40.000Z,78,,64,tgi,50,false,WizardLM/WizardCoder-15B-V1.0,false,3,256,,1062.210816099285 tokens/sec,0.94 msecs,17.1044375896454,67072
+rare-glitter-170,finished,-,infinitylogesh,,2023-07-22T22:32:53.000Z,100,,64,vllm,50,false,WizardLM/WizardCoder-15B-V1.0,false,3,256,,972.8498149749679 tokens/sec,1.03 msecs,18.4098386764526,67596
+astral-planet-182,finished,-,infinitylogesh,,2023-07-22T22:54:40.000Z,94,,128,vllm,1,false,WizardLM/WizardCoder-15B-V1.0,false,3,256,,1984.9129074603386 tokens/sec,0.50 msecs,18.2745432853699,132612
+copper-dragon-176,finished,-,infinitylogesh,,2023-07-22T22:47:06.000Z,70,,128,tgi,1,false,WizardLM/WizardCoder-15B-V1.0,false,3,256,,2409.0696444515993 tokens/sec,0.42 msecs,17.4308688640595,131584
+noble-lion-172,finished,-,infinitylogesh,,2023-07-22T22:37:31.000Z,181,,128,hf,1,false,WizardLM/WizardCoder-15B-V1.0,false,3,256,,893.3625211303092 tokens/sec,1.12 msecs,115.609060049057,131584
+chocolate-wind-184,finished,-,infinitylogesh,,2023-07-22T22:59:34.000Z,140,,128,vllm,50,false,WizardLM/WizardCoder-15B-V1.0,false,3,256,,1172.7728722409734 tokens/sec,0.85 msecs,29.6362414360046,132612
+pretty-dragon-178,failed,-,infinitylogesh,,2023-07-22T22:50:52.000Z,23,,128,tgi,50,false,WizardLM/WizardCoder-15B-V1.0,false,3,256,,,,,
+hopeful-puddle-174,finished,-,infinitylogesh,,2023-07-22T22:45:44.000Z,33,,128,hf,50,false,WizardLM/WizardCoder-15B-V1.0,false,3,256,,-1.2585858349439605 tokens/sec,-794.54 msecs,-1,-1
+colorful-meadow-169,finished,-,infinitylogesh,,2023-07-22T22:30:33.000Z,133,,64,vllm,1,false,WizardLM/WizardCoder-15B-V1.0,false,3,512,,1296.9659953868954 tokens/sec,0.77 msecs,26.9168236255646,134668
+playful-music-164,finished,-,infinitylogesh,,2023-07-22T22:18:51.000Z,104,,64,tgi,1,false,WizardLM/WizardCoder-15B-V1.0,false,3,512,,1520.9257391976498 tokens/sec,0.66 msecs,25.3696162700653,134144
+robust-flower-156,finished,-,infinitylogesh,,2023-07-22T21:40:26.000Z,251,,64,hf,1,false,WizardLM/WizardCoder-15B-V1.0,false,3,512,,611.847829810458 tokens/sec,1.63 msecs,162.227744817734,134144
+trim-bee-171,finished,-,infinitylogesh,,2023-07-22T22:34:41.000Z,162,,64,vllm,50,false,WizardLM/WizardCoder-15B-V1.0,false,3,512,,995.7973853879255 tokens/sec,1.00 msecs,35.6891541481018,134668
+bright-butterfly-167,finished,-,infinitylogesh,,2023-07-22T22:26:50.000Z,135,,64,tgi,50,false,WizardLM/WizardCoder-15B-V1.0,false,3,512,,1114.2296814978586 tokens/sec,0.90 msecs,32.0176148414612,134144
+fine-lion-183,finished,-,infinitylogesh,,2023-07-22T22:56:21.000Z,185,,128,vllm,1,false,WizardLM/WizardCoder-15B-V1.0,false,3,512,,1697.3183531984635 tokens/sec,0.59 msecs,41.9676373004913,264196
+jolly-shape-177,finished,-,infinitylogesh,,2023-07-22T22:48:22.000Z,143,,128,tgi,1,false,WizardLM/WizardCoder-15B-V1.0,false,3,512,,2047.5958854772996 tokens/sec,0.49 msecs,40.5580832958221,263168
+absurd-gorge-173,finished,-,infinitylogesh,,2023-07-22T22:40:39.000Z,297,,128,hf,1,false,WizardLM/WizardCoder-15B-V1.0,false,3,512,,996.2653963530197 tokens/sec,1.00 msecs,197.117185592651,263168
+eager-bird-185,finished,-,infinitylogesh,,2023-07-22T23:02:03.000Z,247,,128,vllm,50,false,WizardLM/WizardCoder-15B-V1.0,false,3,512,,1208.9143121796374 tokens/sec,0.83 msecs,57.3656129837036,264196
+atomic-thunder-175,finished,-,infinitylogesh,,2023-07-22T22:46:24.000Z,36,,128,hf,50,false,WizardLM/WizardCoder-15B-V1.0,false,3,512,,-1.0161016454372374 tokens/sec,-984.15 msecs,-1,-1
