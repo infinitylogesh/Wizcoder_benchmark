@@ -1,14 +1,35 @@
 # WizardCorder/Starcoder Benchmark
 
+Repo to benchmark inference optimizations for WizardCoder / Starcoder model.
 
+Note: All benchmarks reported are run in A100 40GB instance and with `WizardLM/WizardCoder-15B-V1.0`.
 
 ## Installation steps:
 
+```
+git clone https://github.com/infinitylogesh/Wizcoder_benchmark.git
+cd Wizcoder_benchmark/scripts && make install-vllm && make install-tgi && make install-flash-attn
+```
 
+## Usage:
 
-## Methodology
+To run the benchmark for a specific inference engine:
 
+```bash
+python3 main.py --batch_size <BATCH-SIZE> --num_tokens <NUM-TOKENS-TO_GENERATE> --inference_engine <INFERENCE-ENGINE>
+```
 
+Values of `INFERENCE-ENGINE` can be:
+- `hf`: Vanilla hf inference
+- `tgi`: Flash attention using HF's Text-generation-inference
+- `vllm`: Paged Attention using vLLM
+- `hf_pipeling`: Inference using huggingface pipeline 
+
+To run the complete benchmark:
+
+```bash
+sh scriots/run_benchmark.sh
+```
 ## Results:
 
 - **Flash Attention** (Implemented from Text-generation-inference) Performs the best in various setting. However, with long sequences(especially with long input sequences), It seems to result into OOM
@@ -18,6 +39,7 @@
 - **HF Generate** (baseline) - Huggingface's venilla `AutoModelForCausalLM` taken as a baseline.
 
 - **HF Pipeline** - Huggingface's Pipeline for text-generation performed the worst of all (Results are to be added). 
+
 
 ### Results with short sequence inputs
 
@@ -36,11 +58,13 @@
   <img src="assets/max_512_long_input.png" width="350" />  
 </p>
 
-### TODO:
-For further improvement in throughput, 
+CSV results of the benchmark is available here - `results/results.csv`
+### TODO ( Future Optimisations ):
+For further improvements in throughput, 
 
 - [ ] Performance comparison Quantized model ([GPTQ](TheBloke/WizardCoder-15B-1.0-GPTQ))
-- [ ] Flash Attention + Paged Attention ( Using latest Text-generation-inference )
+- [ ] Flash Attention + Paged Attention ( Using [latest Text-generation-inference](https://github.com/huggingface/text-generation-inference/pull/516))
+- [ ] Falsh attention v2
 - [ ] [Continous batching](https://www.anyscale.com/blog/continuous-batching-llm-inference)
 - [ ] Other optimizations listed [here](https://github.com/huggingface/text-generation-inference/issues/376).
 
