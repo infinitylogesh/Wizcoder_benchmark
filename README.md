@@ -2,7 +2,7 @@
 
 Repo to benchmark inference optimizations for WizardCoder / Starcoder model.
 
-Note: All benchmarks reported are run in A100 40GB instance and with `WizardLM/WizardCoder-15B-V1.0`.
+Note: All results reported were ran in A100 40GB instance and with `WizardLM/WizardCoder-15B-V1.0`.
 
 ## Installation steps:
 
