@@ -17,13 +17,30 @@ import argparse
 
 parser = argparse.ArgumentParser()
 
-parser.add_argument("--num_tokens", type=int, default=128)
+parser.add_argument(
+    "--num_tokens", type=int, default=128, help="Number of tokens to generate"
+)
 parser.add_argument("--batch_size", type=int, default=16)
 parser.add_argument("--load_in_8bit", action="store_true")
 parser.add_argument("--model_name", type=str, default="WizardLM/WizardCoder-15B-V1.0")
-parser.add_argument("--inference_engine", type=str, default=None)
-parser.add_argument("--input_scale_factor", type=int, default=1)
-parser.add_argument("--num_cycles", type=int, default=3)
+parser.add_argument(
+    "--inference_engine",
+    type=str,
+    default=None,
+    help="inference engine to use. Values can be `hf`,`tgi`,`vllm`,`hf_pipeline`",
+)
+parser.add_argument(
+    "--input_scale_factor",
+    type=int,
+    default=1,
+    help="Factor which to scale the input length,Used for long or short input benchmark",
+)
+parser.add_argument(
+    "--num_cycles",
+    type=int,
+    default=3,
+    help="Number of cycles to repeat the batch inference",
+)
 parser.add_argument("--no_flash", action="store_true")
 parser.add_argument("--quantize", type=str, default=None)
 
