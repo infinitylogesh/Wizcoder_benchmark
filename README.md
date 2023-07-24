@@ -28,7 +28,7 @@ Values of `INFERENCE-ENGINE` can be:
 To run the complete benchmark:
 
 ```bash
-sh scriots/run_benchmark.sh
+sh scripts/run_benchmark.sh
 ```
 ## Results:
 
