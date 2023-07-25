@@ -6,9 +6,18 @@ Note: All results reported were ran in A100 40GB instance and with `WizardLM/Wiz
 
 ## Installation steps:
 
+Install required packages
+
 ```
 git clone https://github.com/infinitylogesh/Wizcoder_benchmark.git
-cd Wizcoder_benchmark/scripts && make install-vllm && make install-tgi && make install-flash-attn
+cd Wizcoder_benchmark/scripts && make install-vllm && make install-tgi
+cd Wizcoder_benchmark/scripts && make install-flash-attn
+```
+
+Download the model weights
+
+```
+text-generation-server download-weights WizardLM/WizardCoder-15B-V1.0
 ```
 
 ## Usage:
